@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Gestor de Tareas</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 600px; margin: 40px auto; padding: 0 16px; color: #222; }
+        h1 { margin-bottom: 4px; }
+        h2 { margin-top: 32px; border-bottom: 1px solid #ddd; padding-bottom: 4px; }
+        form { margin: 12px 0; }
+        input[type=text] { padding: 6px; margin-right: 6px; }
+        ul { padding-left: 20px; }
+        li { margin-bottom: 6px; }
+        a { text-decoration: none; color: #2255aa; }
+        a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <h1>📋 Mis Tareas</h1>
+
+    <h2>Nueva tarea</h2>
+    <form action="{% url 'mytask:agregar_tarea' %}" method="post">
+        {% csrf_token %}
+        <input type="text" name="titulo" placeholder="Título" required>
+        <input type="text" name="descripcion" placeholder="Descripción (opcional)">
+        <button type="submit">Agregar</button>
+    </form>
+
+    <h2>Pendientes</h2>
+    {% if tareas_pendientes %}
+        <ul>
+            {% for tarea in tareas_pendientes %}
+                <li><a href="{% url 'mytask:detalle' tarea.id %}">{{ tarea.titulo }}</a></li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>No tienes tareas pendientes.</p>
+    {% endif %}
+
+    <h2>Completadas</h2>
+    {% if tareas_completadas %}
+        <ul>
+            {% for tarea in tareas_completadas %}
+                <li><a href="{% url 'mytask:detalle' tarea.id %}">✅ {{ tarea.titulo }}</a></li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>Aún no has completado ninguna tarea.</p>
+    {% endif %}
+</body>
+</html>

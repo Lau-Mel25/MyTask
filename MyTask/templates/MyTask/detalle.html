@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ tarea.titulo }}</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 600px; margin: 40px auto; padding: 0 16px; color: #222; }
+        h2 { margin-top: 32px; border-bottom: 1px solid #ddd; padding-bottom: 4px; }
+        form { margin: 12px 0; }
+        input[type=text] { padding: 6px; margin-right: 6px; width: 60%; }
+        ul { padding-left: 20px; }
+        li { margin-bottom: 6px; }
+        a { text-decoration: none; color: #2255aa; }
+        a:hover { text-decoration: underline; }
+        .acciones { display: flex; align-items: center; gap: 12px; }
+        .acciones form { margin: 0; }
+        .volver { display: inline-block; margin-bottom: 16px; }
+    </style>
+</head>
+<body>
+    <a class="volver" href="{% url 'mytask:index' %}">&larr; Volver a mis tareas</a>
+
+    <h1>{{ tarea.titulo }}</h1>
+    {% if tarea.descripcion %}
+        <p>{{ tarea.descripcion }}</p>
+    {% endif %}
+    <p>Estado: {% if tarea.completada %}✅ Completada{% else %}⏳ Pendiente{% endif %}</p>
+
+    <form action="{% url 'mytask:completar_tarea' tarea.id %}" method="post">
+        {% csrf_token %}
+        <button type="submit">
+            {% if tarea.completada %}Marcar como pendiente{% else %}Marcar como completada{% endif %}
+        </button>
+    </form>
+
+    <div class="acciones">
+        <a href="{% url 'mytask:editar_tarea' tarea.id %}">✏️ Editar</a>
+        <form action="{% url 'mytask:eliminar_tarea' tarea.id %}" method="post"
+              onsubmit="return confirm('¿Eliminar esta tarea y su bitácora?');">
+            {% csrf_token %}
+            <button type="submit">🗑️ Eliminar</button>
+        </form>
+    </div>
+
+    <h2>Bitácora: ¿qué hiciste?</h2>
+    <form action="{% url 'mytask:agregar_registro' tarea.id %}" method="post">
+        {% csrf_token %}
+        <input type="text" name="detalle" placeholder="Ej: Avancé la mitad del informe" required>
+        <button type="submit">Agregar</button>
+    </form>
+
+    {% if registros %}
+        <ul>
+            {% for registro in registros %}
+                <li>{{ registro.fecha|date:"d/m/Y H:i" }} — {{ registro.detalle }}</li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>Todavía no hay registros para esta tarea.</p>
+    {% endif %}
+</body>
+</html>

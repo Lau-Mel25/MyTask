@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Resultados: {{ propuesta.titulo }}</title>
+</head>
+<body>
+    <h1>{{ propuesta.titulo }}</h1>
+    <h2>Resultados</h2>
+
+    <ul>
+        {% for opcion in propuesta.votosxpropuesta.all %}
+            <li>{{ opcion.texto }}: {{ opcion.votos }} voto{{ opcion.votos|pluralize }}</li>
+        {% endfor %}
+    </ul>
+
+    <a href="{% url 'propuestas:detalle' propuesta.id %}">Votar de nuevo</a> |
+    <a href="{% url 'propuestas:index' %}">Volver a propuestas</a>
+</body>
+</html>
