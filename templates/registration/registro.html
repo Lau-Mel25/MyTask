@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+
+{% block title %}Crear cuenta · MyTask{% endblock %}
+
+{% block content %}
+<div class="pagina-auth">
+    <div class="tarjeta">
+        <div class="auth-cabecera">
+            <div class="auth-icono" aria-hidden="true">✨</div>
+            <h1>Crear cuenta</h1>
+            <p>Regístrate para organizar tus tareas y llevar su bitácora.</p>
+        </div>
+
+        {% if form.non_field_errors %}
+            <div class="mensaje error" role="alert">{{ form.non_field_errors }}</div>
+        {% endif %}
+
+        <form method="post" action="{% url 'registro' %}">
+            {% csrf_token %}
+            {% for field in form %}
+                <div class="campo">
+                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.help_text %}
+                        <p class="ayuda">{{ field.help_text|safe }}</p>
+                    {% endif %}
+                    {% for error in field.errors %}
+                        <p class="error">{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endfor %}
+            <button class="boton boton-bloque" type="submit">Crear mi cuenta</button>
+        </form>
+
+        <p class="auth-pie">¿Ya tienes cuenta? <a href="{% url 'login' %}">Inicia sesión</a>.</p>
+    </div>
+</div>
+{% endblock %}

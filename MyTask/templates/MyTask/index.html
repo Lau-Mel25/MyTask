@@ -1,51 +1,104 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <title>Gestor de Tareas</title>
-    <style>
-        body { font-family: Arial, sans-serif; max-width: 600px; margin: 40px auto; padding: 0 16px; color: #222; }
-        h1 { margin-bottom: 4px; }
-        h2 { margin-top: 32px; border-bottom: 1px solid #ddd; padding-bottom: 4px; }
-        form { margin: 12px 0; }
-        input[type=text] { padding: 6px; margin-right: 6px; }
-        ul { padding-left: 20px; }
-        li { margin-bottom: 6px; }
-        a { text-decoration: none; color: #2255aa; }
-        a:hover { text-decoration: underline; }
-    </style>
-</head>
-<body>
-    <h1>📋 Mis Tareas</h1>
+{% extends 'base.html' %}
 
-    <h2>Nueva tarea</h2>
+{% block title %}Mis tareas · MyTask{% endblock %}
+
+{% block content %}
+<section class="tarjeta">
+    <div class="cabecera">
+        <div>
+            <h1>Hola, {{ user.username }} 👋</h1>
+            <p>Organiza tus pendientes y registra lo que avanzas cada día.</p>
+        </div>
+        {% if user.perfil %}
+            <span class="insignia {% if user.perfil.rol == 'administrador' %}insignia-admin{% else %}insignia-usuario{% endif %}">
+                {{ user.perfil.get_rol_display }}
+            </span>
+        {% endif %}
+    </div>
+
+    <h2 style="margin-top: 22px;">Nueva tarea</h2>
     <form action="{% url 'mytask:agregar_tarea' %}" method="post">
         {% csrf_token %}
-        <input type="text" name="titulo" placeholder="Título" required>
-        <input type="text" name="descripcion" placeholder="Descripción (opcional)">
-        <button type="submit">Agregar</button>
+        <div class="formulario-fila">
+            <div class="campo">
+                <label for="titulo">Título</label>
+                <input type="text" id="titulo" name="titulo"
+                       placeholder="Ej: Entregar el informe" maxlength="100" required>
+            </div>
+            <div class="campo">
+                <label for="descripcion">Descripción <span class="opcional">(opcional)</span></label>
+                <input type="text" id="descripcion" name="descripcion"
+                       placeholder="Detalles de la tarea">
+            </div>
+        </div>
+        <button class="boton" type="submit">＋ Agregar tarea</button>
     </form>
+</section>
 
-    <h2>Pendientes</h2>
+<section class="seccion">
+    <div class="seccion-cabecera">
+        <h2>Pendientes</h2>
+        <span class="contador" aria-label="{{ tareas_pendientes|length }} tareas pendientes">
+            {{ tareas_pendientes|length }}
+        </span>
+    </div>
+
     {% if tareas_pendientes %}
-        <ul>
+        <ul class="lista-tareas">
             {% for tarea in tareas_pendientes %}
-                <li><a href="{% url 'mytask:detalle' tarea.id %}">{{ tarea.titulo }}</a></li>
+                <li>
+                    <a class="tarea" href="{% url 'mytask:detalle' tarea.id %}">
+                        <span class="tarea-icono" aria-hidden="true">⏳</span>
+                        <span class="tarea-cuerpo">
+                            <span class="tarea-titulo">{{ tarea.titulo }}</span>
+                            <span class="tarea-meta">
+                                Creada el {{ tarea.fecha_creacion|date:"d/m/Y H:i" }}
+                                {% if tarea.descripcion %} · {{ tarea.descripcion|truncatechars:70 }}{% endif %}
+                            </span>
+                        </span>
+                        <span class="tarea-flecha" aria-hidden="true">›</span>
+                    </a>
+                </li>
             {% endfor %}
         </ul>
     {% else %}
-        <p>No tienes tareas pendientes.</p>
+        <div class="vacio">
+            <span class="vacio-icono" aria-hidden="true">🎉</span>
+            No tienes tareas pendientes. ¡Buen trabajo!
+        </div>
     {% endif %}
+</section>
 
-    <h2>Completadas</h2>
+<section class="seccion">
+    <div class="seccion-cabecera">
+        <h2>Completadas</h2>
+        <span class="contador" aria-label="{{ tareas_completadas|length }} tareas completadas">
+            {{ tareas_completadas|length }}
+        </span>
+    </div>
+
     {% if tareas_completadas %}
-        <ul>
+        <ul class="lista-tareas">
             {% for tarea in tareas_completadas %}
-                <li><a href="{% url 'mytask:detalle' tarea.id %}">✅ {{ tarea.titulo }}</a></li>
+                <li>
+                    <a class="tarea completada" href="{% url 'mytask:detalle' tarea.id %}">
+                        <span class="tarea-icono" aria-hidden="true">✅</span>
+                        <span class="tarea-cuerpo">
+                            <span class="tarea-titulo">{{ tarea.titulo }}</span>
+                            <span class="tarea-meta">
+                                Completada · creada el {{ tarea.fecha_creacion|date:"d/m/Y" }}
+                            </span>
+                        </span>
+                        <span class="tarea-flecha" aria-hidden="true">›</span>
+                    </a>
+                </li>
             {% endfor %}
         </ul>
     {% else %}
-        <p>Aún no has completado ninguna tarea.</p>
+        <div class="vacio">
+            <span class="vacio-icono" aria-hidden="true">📌</span>
+            Aún no has completado ninguna tarea.
+        </div>
     {% endif %}
-</body>
-</html>
+</section>
+{% endblock %}

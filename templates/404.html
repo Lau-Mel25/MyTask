@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+
+{% block title %}Página no encontrada · MyTask{% endblock %}
+
+{% block content %}
+<div class="tarjeta tarjeta-estrecha" style="text-align: center;">
+    <div class="auth-icono" aria-hidden="true">🔎</div>
+    <h1>Página no encontrada</h1>
+    <p class="ayuda">La página o la tarea que buscas no existe o no te pertenece.</p>
+    <a class="boton" href="{% url 'mytask:index' %}">Volver a mis tareas</a>
+</div>
+{% endblock %}

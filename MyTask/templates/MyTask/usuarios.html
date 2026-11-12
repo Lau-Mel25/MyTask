@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+
+{% block title %}Gestión de usuarios · MyTask{% endblock %}
+
+{% block content %}
+<div class="tarjeta">
+    <div class="cabecera">
+        <div>
+            <h1>Gestión de usuarios</h1>
+            <p>Cambia el rol de cada persona con el selector y guarda los cambios.</p>
+        </div>
+        <div class="cabecera-acciones">
+            <a class="boton boton-secundario boton-pequeno" href="{% url 'mytask:panel' %}">
+                ← Volver al panel
+            </a>
+        </div>
+    </div>
+
+    <p class="ayuda">
+        Al asignar el rol <strong>Administrador</strong>, la persona podrá entrar al panel
+        de la app y a Django Admin.
+    </p>
+
+    {% if usuarios %}
+        <form method="post" action="{% url 'mytask:usuarios' %}">
+            {% csrf_token %}
+            <div class="tabla-contenedor">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Usuario</th>
+                            <th>Correo</th>
+                            <th>Rol</th>
+                            <th>Tareas</th>
+                            <th>Pendientes</th>
+                            <th>Completadas</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for usuario in usuarios %}
+                            <tr>
+                                <td>
+                                    {{ usuario.username }}
+                                    {% if usuario.is_superuser %}
+                                        <span class="insignia insignia-admin">Superusuario</span>
+                                    {% elif usuario.pk == request.user.pk %}
+                                        <span class="insignia insignia-usuario">Tú</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ usuario.email|default:"—" }}</td>
+                                <td>
+                                    <div class="celda-rol">
+                                        {% if usuario.is_superuser %}
+                                            <span class="insignia insignia-admin">Administrador</span>
+                                            <span class="ayuda">No editable</span>
+                                        {% elif usuario.pk == request.user.pk %}
+                                            <span class="insignia {% if usuario.perfil.rol == 'administrador' %}insignia-admin{% else %}insignia-usuario{% endif %}">
+                                                {% if usuario.perfil %}{{ usuario.perfil.get_rol_display }}{% else %}Usuario{% endif %}
+                                            </span>
+                                            <span class="ayuda">No puedes cambiar tu propio rol</span>
+                                        {% else %}
+                                            <label class="sr-only" for="rol-{{ usuario.pk }}">
+                                                Rol de {{ usuario.username }}
+                                            </label>
+                                            <select class="select-rol" id="rol-{{ usuario.pk }}"
+                                                    name="rol_{{ usuario.pk }}">
+                                                {% for valor, etiqueta in roles %}
+                                                    <option value="{{ valor }}"{% if usuario.perfil.rol == valor %} selected{% endif %}>
+                                                        {{ etiqueta }}
+                                                    </option>
+                                                {% endfor %}
+                                            </select>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                                <td>{{ usuario.total_tareas }}</td>
+                                <td>{{ usuario.tareas_pendientes }}</td>
+                                <td>{{ usuario.tareas_completadas }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="acciones">
+                <button class="boton" type="submit">Guardar cambios</button>
+                <a class="boton boton-secundario" href="{% url 'mytask:panel' %}">Cancelar</a>
+            </div>
+        </form>
+    {% else %}
+        <div class="vacio">
+            <span class="vacio-icono" aria-hidden="true">👥</span>
+            Todavía no hay usuarios registrados.
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

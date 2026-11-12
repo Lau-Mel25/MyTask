@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+
+{% block title %}Solicitud incorrecta · MyTask{% endblock %}
+
+{% block content %}
+<div class="tarjeta tarjeta-estrecha" style="text-align: center;">
+    <div class="auth-icono" aria-hidden="true">⚠️</div>
+    <h1>Solicitud incorrecta</h1>
+    <p class="ayuda">No pudimos procesar tu solicitud. Revisa los datos e inténtalo de nuevo.</p>
+    <a class="boton" href="{% url 'mytask:index' %}">Volver a mis tareas</a>
+</div>
+{% endblock %}

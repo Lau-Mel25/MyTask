@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+
+{% block title %}Iniciar sesión · MyTask{% endblock %}
+
+{% block content %}
+<div class="pagina-auth">
+    <div class="tarjeta">
+        <div class="auth-cabecera">
+            <div class="auth-icono" aria-hidden="true">🔐</div>
+            <h1>Iniciar sesión</h1>
+            <p>Ingresa para ver y organizar tus tareas.</p>
+        </div>
+
+        {% if form.non_field_errors %}
+            <div class="mensaje error" role="alert">{{ form.non_field_errors }}</div>
+        {% endif %}
+
+        <form method="post" action="{% url 'login' %}">
+            {% csrf_token %}
+            {% for field in form %}
+                <div class="campo">
+                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    {{ field }}
+                    {% for error in field.errors %}
+                        <p class="error">{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endfor %}
+            <input type="hidden" name="next" value="{{ next }}">
+            <button class="boton boton-bloque" type="submit">Entrar</button>
+        </form>
+
+        <p class="auth-pie">¿No tienes cuenta? <a href="{% url 'registro' %}">Regístrate aquí</a>.</p>
+    </div>
+</div>
+{% endblock %}

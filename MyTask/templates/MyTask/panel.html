@@ -1,0 +1,117 @@
+{% extends 'base.html' %}
+
+{% block title %}Panel de administración · MyTask{% endblock %}
+
+{% block content %}
+<div class="tarjeta">
+    <div class="cabecera">
+        <div>
+            <h1>Panel de administración</h1>
+            <p>Consulta los usuarios, sus roles y todas las tareas del sistema.</p>
+        </div>
+        <div class="cabecera-acciones">
+            <a class="boton boton-secundario boton-pequeno" href="{% url 'mytask:usuarios' %}">
+                Gestionar roles
+            </a>
+            <a class="boton boton-secundario boton-pequeno" href="{% url 'admin:index' %}">
+                Abrir Django Admin
+            </a>
+        </div>
+    </div>
+
+    <div class="estadisticas">
+        <div class="estadistica">
+            <span class="estadistica-numero">{{ total_usuarios }}</span>
+            <span class="estadistica-etiqueta">Usuarios registrados</span>
+        </div>
+        <div class="estadistica">
+            <span class="estadistica-numero">{{ total_tareas }}</span>
+            <span class="estadistica-etiqueta">Tareas en total</span>
+        </div>
+        <div class="estadistica">
+            <span class="estadistica-numero">{{ total_completadas }}</span>
+            <span class="estadistica-etiqueta">Tareas completadas</span>
+        </div>
+    </div>
+
+    <h2>Usuarios y roles</h2>
+    {% if usuarios %}
+        <div class="tabla-contenedor">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Usuario</th>
+                        <th>Correo</th>
+                        <th>Rol</th>
+                        <th>Tareas</th>
+                        <th>Pendientes</th>
+                        <th>Completadas</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for usuario in usuarios %}
+                        <tr>
+                            <td>{{ usuario.username }}</td>
+                            <td>{{ usuario.email|default:"—" }}</td>
+                            <td>
+                                {% if usuario.perfil %}
+                                    <span class="insignia {% if usuario.perfil.rol == 'administrador' %}insignia-admin{% else %}insignia-usuario{% endif %}">
+                                        {{ usuario.perfil.get_rol_display }}
+                                    </span>
+                                {% else %}
+                                    <span class="insignia insignia-usuario">Sin perfil</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ usuario.total_tareas }}</td>
+                            <td>{{ usuario.tareas_pendientes }}</td>
+                            <td>{{ usuario.tareas_completadas }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="vacio">
+            <span class="vacio-icono" aria-hidden="true">👥</span>
+            Todavía no hay usuarios registrados.
+        </div>
+    {% endif %}
+
+    <h2 style="margin-top: 28px;">Todas las tareas</h2>
+    {% if tareas %}
+        <div class="tabla-contenedor">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Tarea</th>
+                        <th>Propietario</th>
+                        <th>Estado</th>
+                        <th>Creada</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for tarea in tareas %}
+                        <tr>
+                            <td>{{ tarea.titulo }}</td>
+                            <td>{{ tarea.propietario.username }}</td>
+                            <td>
+                                {% if tarea.completada %}
+                                    <span class="insignia insignia-ok">Completada</span>
+                                {% else %}
+                                    <span class="insignia insignia-pendiente">Pendiente</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ tarea.fecha_creacion|date:"d/m/Y H:i" }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="vacio">
+            <span class="vacio-icono" aria-hidden="true">📋</span>
+            Todavía no hay tareas registradas.
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

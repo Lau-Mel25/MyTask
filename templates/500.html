@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+
+{% block title %}Error del servidor · MyTask{% endblock %}
+
+{% block content %}
+<div class="tarjeta tarjeta-estrecha" style="text-align: center;">
+    <div class="auth-icono" aria-hidden="true">🛠️</div>
+    <h1>Ocurrió un error inesperado</h1>
+    <p class="ayuda">Estamos trabajando para solucionarlo. Vuelve a intentarlo en unos momentos.</p>
+    <a class="boton" href="{% url 'mytask:index' %}">Volver a mis tareas</a>
+</div>
+{% endblock %}

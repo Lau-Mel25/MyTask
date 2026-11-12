@@ -1,0 +1,72 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="MyTask: gestor de tareas personales con bitácora de avances.">
+    <meta name="theme-color" content="#22223b">
+    <title>{% block title %}MyTask · Gestor de Tareas{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'MyTask/css/estilos.css' %}">
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+    <a class="saltar-contenido" href="#contenido">Saltar al contenido</a>
+
+    <header class="topbar">
+        <div class="contenedor topbar-inner">
+            <a class="brand" href="{% url 'mytask:index' %}">
+                <span class="brand-icono" aria-hidden="true">📋</span> MyTask
+            </a>
+
+            <input type="checkbox" id="menu-toggle" class="menu-toggle">
+            <label for="menu-toggle" class="menu-boton" aria-label="Abrir menú">
+                <span></span><span></span><span></span>
+            </label>
+
+            <nav class="menu" aria-label="Navegación principal">
+                {% if user.is_authenticated %}
+                    <a class="menu-enlace {% if request.resolver_match.namespace == 'mytask' and request.resolver_match.url_name == 'index' %}activo{% endif %}"
+                       href="{% url 'mytask:index' %}">Mis tareas</a>
+
+                    {% if user.is_superuser or user.perfil.rol == 'administrador' %}
+                        <a class="menu-enlace {% if request.resolver_match.url_name == 'panel' %}activo{% endif %}"
+                           href="{% url 'mytask:panel' %}">Panel</a>
+                        <a class="menu-enlace {% if request.resolver_match.url_name == 'usuarios' %}activo{% endif %}"
+                           href="{% url 'mytask:usuarios' %}">Usuarios</a>
+                        <a class="menu-enlace" href="{% url 'admin:index' %}">Administración</a>
+                    {% endif %}
+
+                    <span class="usuario-chip">
+                        <strong>{{ user.username }}</strong>
+                        {% if user.perfil %}· {{ user.perfil.get_rol_display }}{% endif %}
+                    </span>
+
+                    <form method="post" action="{% url 'logout' %}">
+                        {% csrf_token %}
+                        <button class="boton-salir" type="submit">Cerrar sesión</button>
+                    </form>
+                {% else %}
+                    <a class="menu-enlace {% if request.resolver_match.url_name == 'login' %}activo{% endif %}"
+                       href="{% url 'login' %}">Iniciar sesión</a>
+                    <a class="boton boton-pequeno" href="{% url 'registro' %}">Crear cuenta</a>
+                {% endif %}
+            </nav>
+        </div>
+    </header>
+
+    <main id="contenido" class="contenedor">
+        {% if messages %}
+            <div class="mensajes" role="status" aria-live="polite">
+                {% for message in messages %}
+                    <div class="mensaje {{ message.tags }}">{{ message }}</div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="pie">MyTask · Gestor de tareas con bitácora de avances</footer>
+</body>
+</html>
