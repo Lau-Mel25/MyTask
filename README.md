@@ -157,6 +157,39 @@ Requisitos: Python 3.12 o superior.
 - Panel de la app (solo administradores): `http://127.0.0.1:8000/myTask/panel/`
 - Django Admin: `http://127.0.0.1:8000/admin/`
 
+### Ejecutarlo con Docker
+
+1. Construir la imagen (el punto final indica la carpeta actual):
+
+   ```bash
+   docker build -t mytask .
+   ```
+
+2. Levantar el contenedor:
+
+   ```bash
+   docker run -d --name mytask_app -p 8000:8000 mytask
+   ```
+
+3. Abrir `http://localhost:8000/` en el navegador.
+
+Para crear un superusuario mientras el contenedor está corriendo:
+
+```bash
+docker exec -it mytask_app python manage.py createsuperuser
+```
+
+Comandos útiles:
+
+```bash
+docker logs mytask_app      # ver la salida del servidor
+docker stop mytask_app      # detenerlo
+docker start mytask_app     # volver a iniciarlo
+docker rm mytask_app        # eliminarlo
+```
+
+> La base de datos SQLite se crea dentro del contenedor al iniciar. Si eliminas el contenedor, también se eliminan los datos. Para conservarlos entre reinicios, agrega un volumen o usa PostgreSQL (previsto para la Entrega 3).
+
 ### Pruebas automáticas
 
 ```bash

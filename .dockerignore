@@ -1,0 +1,26 @@
+# Entorno y cachés de Python
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.coverage
+
+# Base de datos local y secretos
+db.sqlite3
+db.sqlite3-journal
+.env
+.env.*
+!.env.example
+
+# Control de versiones y editores
+.git/
+.gitignore
+.vscode/
+.idea/
+.claude/
+
+# Archivos que no se usan en la imagen
+*.log
+PropuestasU/
+README.md
