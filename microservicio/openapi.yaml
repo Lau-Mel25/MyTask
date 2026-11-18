@@ -1,0 +1,128 @@
+openapi: 3.0.3
+info:
+  title: MyTask - Microservicio de sugerencias
+  version: 1.0.0
+  description: |
+    Microservicio de MyTask que sugiere subtareas con IA generativa (Gemini).
+
+    **Cómo probarlo desde esta página**
+    1. Pulsa **Authorize** e ingresa la clave de API (`X-API-Key`) que te entregó el equipo.
+    2. Abre `POST /api/sugerencias`, pulsa **Try it out** y luego **Execute**.
+
+    `GET /health` no necesita clave.
+servers:
+  - url: /
+    description: Este servidor
+tags:
+  - name: Sistema
+    description: Estado del servicio
+  - name: Sugerencias
+    description: Subtareas generadas por IA
+paths:
+  /health:
+    get:
+      tags: [Sistema]
+      summary: Estado del servicio
+      description: Devuelve `ok` si el servicio está en línea. Sirve también para despertar el servicio en el plan gratuito de Render.
+      responses:
+        '200':
+          description: El servicio está en línea.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  estado:
+                    type: string
+                    example: ok
+  /api/sugerencias:
+    post:
+      tags: [Sugerencias]
+      summary: Sugerir subtareas para una tarea
+      description: Envía el título (y opcionalmente la descripción) de una tarea y devuelve entre 3 y 6 subtareas cortas generadas por IA.
+      security:
+        - ApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SolicitudSugerencias'
+            example:
+              titulo: Preparar la sustentación del proyecto
+              descripcion: Presentación de 10 minutos con demo en vivo
+      responses:
+        '200':
+          description: Subtareas generadas.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RespuestaSugerencias'
+              example:
+                tarea: Preparar la sustentación del proyecto
+                subtareas:
+                  - Definir los puntos clave de la presentación
+                  - Preparar las diapositivas
+                  - Ensayar la demo en vivo
+                  - Cronometrar el discurso completo
+        '400':
+          description: Entrada inválida (título vacío o demasiado largo, descripción demasiado larga o JSON mal formado).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: El título es obligatorio.
+        '401':
+          description: Falta la cabecera `X-API-Key` o es incorrecta.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: Clave de API ausente o incorrecta.
+        '502':
+          description: La IA falló, alcanzó su límite de uso o devolvió una respuesta inutilizable.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: La IA no está disponible en este momento.
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: Clave interna compartida entre Django y este microservicio.
+  schemas:
+    SolicitudSugerencias:
+      type: object
+      required: [titulo]
+      properties:
+        titulo:
+          type: string
+          maxLength: 100
+          description: Título de la tarea.
+        descripcion:
+          type: string
+          maxLength: 1000
+          description: Descripción opcional de la tarea.
+    RespuestaSugerencias:
+      type: object
+      properties:
+        tarea:
+          type: string
+        subtareas:
+          type: array
+          minItems: 3
+          maxItems: 6
+          items:
+            type: string
+            maxLength: 100
+    Error:
+      type: object
+      properties:
+        error:
+          type: string

@@ -1,5 +1,9 @@
 const crypto = require('crypto');
+const fs = require('fs');
+const path = require('path');
 const express = require('express');
+const swaggerUi = require('swagger-ui-express');
+const YAML = require('yaml');
 const { generarSubtareas, IAError } = require('./gemini');
 
 const MAX_TITULO = 100;
@@ -45,6 +49,12 @@ function crearApp({ generar, internalApiKey } = {}) {
   app.use(express.json({ limit: '10kb' }));
 
   app.get('/health', (req, res) => res.json({ estado: 'ok' }));
+
+  // Documentación pública (Swagger UI) y la especificación en bruto.
+  const rutaEspecificacion = path.join(__dirname, '..', 'openapi.yaml');
+  const especificacion = YAML.parse(fs.readFileSync(rutaEspecificacion, 'utf8'));
+  app.get('/openapi.yaml', (req, res) => res.type('text/yaml').sendFile(rutaEspecificacion));
+  app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(especificacion));
 
   app.post('/api/sugerencias', async (req, res) => {
     if (!clavesIguales(req.get('X-API-Key'), internalApiKey)) {
