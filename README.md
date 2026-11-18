@@ -13,9 +13,9 @@ Ingeniería de Software · Docente: Elfar Didier Morantes Sánchez.
 
 | Entrega | Fecha | Contenido | Estado |
 |---|---|---|---|
-| 1 | 05/11/2026 | SRS, UML inicial, backlog, repositorio y video | En curso |
-| 2 | 12/11/2026 | CRUD, login, roles, Django Admin, Docker y despliegue inicial | En curso |
-| 3 | 19/11/2026 | Microservicio Node.js, Swagger, IA, Docker Compose | Pendiente |
+| 1 | 05/11/2026 | SRS, UML inicial, backlog, repositorio y video | Entregada |
+| 2 | 12/11/2026 | CRUD, login, roles, Django Admin, Docker y despliegue inicial | Entregada |
+| 3 | 19/11/2026 | Microservicio Node.js, Swagger, IA, Docker Compose | Implementada (falta publicar y grabar el video) |
 | Final | 26/11/2026 | Sustentación | Pendiente |
 
 ### Funcionalidades actuales (app `MyTask`)
@@ -33,11 +33,11 @@ Ingeniería de Software · Docente: Elfar Didier Morantes Sánchez.
 - Panel de administración de la app con usuarios, roles, conteo de tareas (todas, pendientes y completadas) y todas las tareas.
 - Gestión de usuarios y roles desde la vista `/myTask/usuarios/` con selector, además de Django Admin.
 
-### Funcionalidades planeadas
+### Funcionalidades de la Entrega 3
 
-- Microservicio en Node.js con API REST documentada con Swagger/OpenAPI.
-- Sugerencia de subtareas con IA generativa.
-- Contenedores con Docker y Docker Compose.
+- **Sugerencia de subtareas con IA generativa (Gemini):** en el detalle de una tarea, el botón *Sugerir subtareas* propone de 3 a 6 pasos; el usuario marca los que quiere y se agregan como tareas suyas. Si la IA falla, se muestra un aviso y la aplicación sigue funcionando.
+- **Microservicio en Node.js** (`microservicio/`) con API REST documentada con **Swagger/OpenAPI** en `/api-docs`.
+- **Docker Compose** para levantar Django y el microservicio con un comando.
 
 ## Roles y permisos
 
@@ -79,10 +79,10 @@ Al asignar el rol **Administrador**, el sistema activa automáticamente el *Staf
 |---|---|
 | Aplicación web | Python y Django |
 | Base de datos | SQLite (desarrollo) |
-| Microservicio *(planeado)* | Node.js |
-| IA *(planeado)* | API de IA generativa |
-| Contenedores *(planeado)* | Docker y Docker Compose |
-| Documentación de API *(planeado)* | Swagger / OpenAPI |
+| Microservicio | Node.js y Express |
+| IA generativa | API de Gemini (Google) |
+| Contenedores | Docker y Docker Compose |
+| Documentación de API | Swagger / OpenAPI (`swagger-ui-express`) |
 | Control de versiones | GitHub |
 
 ## Arquitectura
@@ -103,9 +103,46 @@ El usuario solo habla con Django. Django guarda los datos en la base de datos y 
 ├── mysite/        # configuración del proyecto Django (settings, URLs)
 ├── MyTask/        # app del gestor de tareas (modelos, vistas, formularios, tests)
 ├── templates/     # plantillas compartidas: base, login y registro
+├── microservicio/ # microservicio Node.js (Express, Gemini, Swagger, pruebas Jest)
+├── docs/          # SRS, diagramas UML, matriz de trazabilidad y guía de despliegue
+├── Dockerfile     # imagen de Django
+├── docker-compose.yml  # Django + microservicio
+├── .env.example   # plantilla de variables de entorno (copiar a .env)
 ├── .gitignore
 └── README.md
 ```
+
+## Microservicio de sugerencias y Docker Compose
+
+Django llama por HTTP al microservicio Node.js, que es el único que habla con Gemini:
+
+```
+Navegador → Django → Node.js (Express) → API de Gemini
+```
+
+| Método y ruta del microservicio | Descripción |
+|---|---|
+| `GET /health` | Estado del servicio (público). |
+| `GET /api-docs` | Swagger UI (público). |
+| `POST /api/sugerencias` | Devuelve de 3 a 6 subtareas para un título y una descripción. Requiere la cabecera `X-API-Key`. |
+
+**Variables de entorno** (plantilla en `.env.example`): `GEMINI_API_KEY`, `INTERNAL_API_KEY`, `DJANGO_SECRET_KEY`, `DJANGO_DEBUG`, `DJANGO_ALLOWED_HOSTS`, y opcionalmente `GEMINI_MODEL` y `DJANGO_SUPERUSER_*`. La clave de Gemini solo llega al microservicio, nunca a Django.
+
+**Levantar todo con Docker Compose:**
+
+```bash
+copy .env.example .env
+docker compose up --build
+```
+
+- Aplicación: `http://localhost:8000`
+- Swagger: `http://localhost:3000/api-docs`
+
+**Pruebas:** `python manage.py test` (Django) y, dentro de `microservicio/`, `npm install` y `npm test` (Node).
+
+La guía paso a paso para publicar los dos servicios en internet está en [`docs/despliegue.md`](docs/despliegue.md).
+
+**URLs públicas:** aplicación `[pegar URL de Django]` · Swagger `[pegar URL de Node]/api-docs`
 
 ## Cómo ejecutarlo en local
 
