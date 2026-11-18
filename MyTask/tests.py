@@ -427,3 +427,95 @@ class ClienteSugerenciasTests(TestCase):
         urlopen.return_value = _respuesta_http({'tarea': 'x'})
         with self.assertRaises(SugerenciasNoDisponibles):
             pedir_sugerencias(self.tarea)
+
+
+class SugerenciasViewsTests(TestCase):
+    def setUp(self):
+        self.ana = User.objects.create_user('ana', password='ClaveSegura123')
+        self.luis = User.objects.create_user('luis', password='ClaveSegura123')
+        self.tarea_ana = Tarea.objects.create(
+            propietario=self.ana, titulo='Preparar informe'
+        )
+        self.tarea_luis = Tarea.objects.create(
+            propietario=self.luis, titulo='Tarea de Luis'
+        )
+        self.url_sugerir = reverse('mytask:sugerir_subtareas', args=[self.tarea_ana.id])
+        self.url_agregar = reverse('mytask:agregar_sugerencias', args=[self.tarea_ana.id])
+
+    @patch('MyTask.views.pedir_sugerencias')
+    def test_sugerir_muestra_las_sugerencias_en_el_detalle(self, pedir):
+        pedir.return_value = ['Reunir datos', 'Escribir borrador', 'Revisar y entregar']
+        self.client.force_login(self.ana)
+        respuesta = self.client.post(self.url_sugerir)
+        self.assertEqual(respuesta.status_code, 200)
+        for sugerencia in pedir.return_value:
+            self.assertContains(respuesta, sugerencia)
+        self.assertContains(respuesta, 'Agregar como tareas')
+        pedir.assert_called_once_with(self.tarea_ana)
+
+    @patch('MyTask.views.pedir_sugerencias')
+    def test_sugerir_con_servicio_caido_muestra_aviso_y_la_pagina_carga(self, pedir):
+        pedir.side_effect = SugerenciasNoDisponibles('La IA alcanzó su límite de uso.')
+        self.client.force_login(self.ana)
+        respuesta = self.client.post(self.url_sugerir)
+        self.assertEqual(respuesta.status_code, 200)
+        self.assertContains(respuesta, 'La IA alcanzó su límite de uso.')
+        self.assertContains(respuesta, 'Bitácora de avances')
+        self.assertNotContains(respuesta, 'Agregar como tareas')
+
+    @patch('MyTask.views.pedir_sugerencias')
+    def test_sugerir_tarea_ajena_devuelve_404_y_no_llama_al_servicio(self, pedir):
+        self.client.force_login(self.luis)
+        respuesta = self.client.post(self.url_sugerir)
+        self.assertEqual(respuesta.status_code, 404)
+        pedir.assert_not_called()
+
+    def test_sugerir_requiere_login(self):
+        respuesta = self.client.post(self.url_sugerir)
+        self.assertEqual(respuesta.status_code, 302)
+        self.assertIn('/login/', respuesta.url)
+
+    def test_sugerir_y_agregar_por_get_devuelven_405(self):
+        self.client.force_login(self.ana)
+        self.assertEqual(self.client.get(self.url_sugerir).status_code, 405)
+        self.assertEqual(self.client.get(self.url_agregar).status_code, 405)
+
+    def test_agregar_crea_una_tarea_por_cada_titulo_marcado(self):
+        self.client.force_login(self.ana)
+        respuesta = self.client.post(
+            self.url_agregar, {'sugerencia': ['Reunir datos', 'Escribir borrador']}
+        )
+        self.assertRedirects(respuesta, reverse('mytask:index'))
+        nuevas = Tarea.objects.filter(propietario=self.ana).exclude(pk=self.tarea_ana.pk)
+        self.assertEqual(
+            sorted(nuevas.values_list('titulo', flat=True)),
+            ['Escribir borrador', 'Reunir datos'],
+        )
+        self.assertFalse(nuevas.filter(completada=True).exists())
+
+    def test_agregar_recorta_a_100_descarta_vacios_y_limita_a_6(self):
+        self.client.force_login(self.ana)
+        titulos = ['uno', '', '   ', 'x' * 150, 'dos', 'tres', 'cuatro', 'cinco', 'seis', 'siete']
+        self.client.post(self.url_agregar, {'sugerencia': titulos})
+        nuevas = Tarea.objects.filter(propietario=self.ana).exclude(pk=self.tarea_ana.pk)
+        self.assertEqual(nuevas.count(), 6)
+        self.assertFalse(nuevas.filter(titulo='').exists())
+        self.assertTrue(nuevas.filter(titulo='x' * 100).exists())
+
+    def test_agregar_sin_titulos_no_crea_nada_y_avisa(self):
+        self.client.force_login(self.ana)
+        respuesta = self.client.post(self.url_agregar, {}, follow=True)
+        self.assertEqual(Tarea.objects.filter(propietario=self.ana).count(), 1)
+        self.assertContains(respuesta, 'No seleccionaste ninguna sugerencia.')
+
+    def test_agregar_tarea_ajena_devuelve_404_y_no_crea_tareas(self):
+        self.client.force_login(self.luis)
+        respuesta = self.client.post(self.url_agregar, {'sugerencia': ['Intruso']})
+        self.assertEqual(respuesta.status_code, 404)
+        self.assertFalse(Tarea.objects.filter(titulo='Intruso').exists())
+
+    def test_detalle_muestra_el_boton_sugerir_subtareas(self):
+        self.client.force_login(self.ana)
+        respuesta = self.client.get(reverse('mytask:detalle', args=[self.tarea_ana.id]))
+        self.assertContains(respuesta, 'Sugerir subtareas')
+        self.assertContains(respuesta, self.url_sugerir)
