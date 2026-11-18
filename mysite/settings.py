@@ -130,6 +130,14 @@ LOGIN_REDIRECT_URL = 'mytask:index'
 LOGOUT_REDIRECT_URL = 'login'
 
 
+# Microservicio de sugerencias con IA (Node.js)
+# En Docker Compose: http://sugerencias:3000. En el despliegue: la URL pública de Node.
+
+NODE_SERVICE_URL = os.environ.get('NODE_SERVICE_URL', 'http://localhost:3000')
+INTERNAL_API_KEY = os.environ.get('INTERNAL_API_KEY', '')
+SUGERENCIAS_TIMEOUT = int(os.environ.get('SUGERENCIAS_TIMEOUT', '30'))
+
+
 # Email
 # https://docs.djangoproject.com/en/6.1/topics/email/#topic-email-configuration
 

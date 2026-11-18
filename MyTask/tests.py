@@ -1,8 +1,14 @@
+import io
+import json
+from unittest.mock import MagicMock, patch
+from urllib.error import HTTPError, URLError
+
 from django.contrib.auth.models import User
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.urls import reverse
 
 from .models import Perfil, Tarea
+from .sugerencias import SugerenciasNoDisponibles, pedir_sugerencias
 
 
 class AutenticacionTests(TestCase):
@@ -328,3 +334,96 @@ class MensajesEnEspanolTests(TestCase):
             reverse('mytask:detalle', args=[tarea.id])
         )
         self.assertContains(respuesta, 'Página no encontrada', status_code=404)
+
+
+def _respuesta_http(cuerpo):
+    """Simula la respuesta de urlopen (administrador de contexto con read())."""
+    if not isinstance(cuerpo, bytes):
+        cuerpo = json.dumps(cuerpo).encode('utf-8')
+    respuesta = MagicMock()
+    respuesta.read.return_value = cuerpo
+    respuesta.__enter__.return_value = respuesta
+    return respuesta
+
+
+def _error_http(codigo, cuerpo):
+    return HTTPError(
+        'http://nodo:3000/api/sugerencias',
+        codigo,
+        'error',
+        {},
+        io.BytesIO(json.dumps(cuerpo).encode('utf-8')),
+    )
+
+
+@override_settings(
+    NODE_SERVICE_URL='http://nodo:3000',
+    INTERNAL_API_KEY='clave-de-prueba',
+    SUGERENCIAS_TIMEOUT=5,
+)
+class ClienteSugerenciasTests(TestCase):
+    def setUp(self):
+        usuario = User.objects.create_user('ana', password='ClaveSegura123')
+        self.tarea = Tarea.objects.create(
+            propietario=usuario, titulo='Preparar informe', descripcion='Entrega del viernes'
+        )
+
+    @patch('MyTask.sugerencias.urlopen')
+    def test_devuelve_la_lista_de_subtareas(self, urlopen):
+        urlopen.return_value = _respuesta_http(
+            {'tarea': 'Preparar informe', 'subtareas': ['a', 'b', 'c']}
+        )
+        self.assertEqual(pedir_sugerencias(self.tarea), ['a', 'b', 'c'])
+
+    @patch('MyTask.sugerencias.urlopen')
+    def test_envia_titulo_descripcion_y_clave(self, urlopen):
+        urlopen.return_value = _respuesta_http({'subtareas': ['a', 'b', 'c']})
+        pedir_sugerencias(self.tarea)
+        peticion = urlopen.call_args[0][0]
+        self.assertEqual(peticion.get_method(), 'POST')
+        self.assertEqual(peticion.full_url, 'http://nodo:3000/api/sugerencias')
+        self.assertEqual(peticion.get_header('X-api-key'), 'clave-de-prueba')
+        self.assertEqual(peticion.get_header('Content-type'), 'application/json')
+        self.assertEqual(
+            json.loads(peticion.data),
+            {'titulo': 'Preparar informe', 'descripcion': 'Entrega del viernes'},
+        )
+        self.assertEqual(urlopen.call_args[1]['timeout'], 5)
+
+    @patch('MyTask.sugerencias.urlopen')
+    def test_error_502_muestra_el_mensaje_del_servicio(self, urlopen):
+        urlopen.side_effect = _error_http(502, {'error': 'La IA alcanzó su límite de uso.'})
+        with self.assertRaises(SugerenciasNoDisponibles) as contexto:
+            pedir_sugerencias(self.tarea)
+        self.assertEqual(str(contexto.exception), 'La IA alcanzó su límite de uso.')
+
+    @patch('MyTask.sugerencias.urlopen')
+    def test_error_401_no_filtra_detalles_y_lanza_sugerencias_no_disponibles(self, urlopen):
+        urlopen.side_effect = _error_http(401, {'error': 'Clave de API ausente o incorrecta.'})
+        with self.assertRaises(SugerenciasNoDisponibles) as contexto:
+            pedir_sugerencias(self.tarea)
+        self.assertNotIn('Clave', str(contexto.exception))
+
+    @patch('MyTask.sugerencias.urlopen')
+    def test_servicio_apagado_lanza_sugerencias_no_disponibles(self, urlopen):
+        urlopen.side_effect = URLError('conexion rechazada')
+        with self.assertRaises(SugerenciasNoDisponibles):
+            pedir_sugerencias(self.tarea)
+
+    @patch('MyTask.sugerencias.urlopen')
+    def test_tiempo_agotado_lanza_sugerencias_no_disponibles(self, urlopen):
+        urlopen.side_effect = TimeoutError()
+        with self.assertRaises(SugerenciasNoDisponibles):
+            pedir_sugerencias(self.tarea)
+
+    @patch('MyTask.sugerencias.urlopen')
+    def test_respuesta_que_no_es_json_lanza_sugerencias_no_disponibles(self, urlopen):
+        urlopen.return_value = _respuesta_http(b'<html>no es json</html>')
+        with self.assertRaises(SugerenciasNoDisponibles):
+            pedir_sugerencias(self.tarea)
+
+    @patch('MyTask.sugerencias.urlopen')
+    def test_respuesta_sin_lista_de_subtareas_lanza_sugerencias_no_disponibles(self, urlopen):
+        urlopen.return_value = _respuesta_http({'tarea': 'x'})
+        with self.assertRaises(SugerenciasNoDisponibles):
+            pedir_sugerencias(self.tarea)
