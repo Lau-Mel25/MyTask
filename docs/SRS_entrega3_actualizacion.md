@@ -8,9 +8,11 @@
 
 | | |
 |---|---|
-| **Subtítulo** **[CAMBIA]** | Entrega 3: microservicio Node.js, Swagger, IA generativa y Docker Compose |
-| **Entrega** **[CAMBIA]** | Entrega 3: integración de microservicios e IA |
-| **Despliegue** | Aplicación: [pegar URL de Django] · Swagger: [pegar URL de Node]/api-docs |
+| **Subtítulo** (línea bajo el título) **[CAMBIA]** | Entrega 3: microservicio Node.js, Swagger, IA generativa y Docker Compose |
+| **Entrega** **[CAMBIA]** | Entrega 3: microservicio Node.js, Swagger, IA generativa y Docker Compose |
+| **Despliegue** (fila opcional) | Aplicación: [pegar URL de Django] · Swagger: [pegar URL de Node]/api-docs |
+
+> **Calce con tu SRS actual ("MyTask 2.pdf"):** tu documento tiene portada, 1.1 a 1.6, 2.1 a 2.5 (con imágenes) y 3 (backlog). Para la Entrega 3 solo necesitas actualizar **portada, 1.4, 1.5, las imágenes de 2.2, 2.3 y 2.5, y el estado del backlog en 3**. Las secciones 4, 5 y 6 de abajo son **opcionales**: tu documento no las tiene; agrégalas solo si quieres documentar la API, Docker y la matriz dentro del SRS.
 
 ---
 
@@ -56,17 +58,19 @@ Insertar `docs/diagrama_componentes.png`: Navegador → Django (vistas, roles, D
 ### 2.3 Despliegue **[CAMBIA]**
 Insertar `docs/diagrama_despliegue.png`: dos servicios web (Django y microservicio), cada uno en su contenedor Docker; Django guarda en SQLite; Node llama a Gemini por HTTPS.
 
-### 2.4 Diagrama de clases (modelos)
-Sin cambios. No se agregaron modelos: las sugerencias se crean como `Tarea` normales.
+### 2.4 Diagrama UML
+Sin cambios (tu SRS lo titula "Diagrama UML"; es el diagrama de clases de los modelos). No se agregaron modelos: las sugerencias se crean como `Tarea` normales.
 
-### 2.5 Diagrama de secuencia **[CAMBIA]**
-Insertar `docs/diagrama_secuencia_sugerencias.png` (sugerir y agregar subtareas, con el camino de error de la IA).
+### 2.5 Diagrama de Secuencia **[CAMBIA]**
+Conserva el de crear una tarea y agrega `docs/diagrama_secuencia_sugerencias.png` (sugerir y agregar subtareas, con el camino de error de la IA).
 
 ---
 
 ## 3. Backlog (Historias de usuario) **[CAMBIA: estado]**
 
-Solo cambian las historias de la Entrega 3 (las anteriores quedan como en la Entrega 2).
+**Cambia la leyenda** que está sobre la tabla (hoy dice "Base = ya existe una primera versión..."). Reemplázala por: *Estado: Hecho = implementado y verificado; En curso = implementado pero falta una evidencia (despliegue público, prueba real o video); Pendiente = por construir. La columna Entrega indica en cuál se espera completarla.*
+
+Solo cambia el **Estado** de las historias de la Entrega 3 (las anteriores quedan como en tu documento; tu tabla ya no incluye HU14, así que no la agregues).
 
 | ID | Historia de usuario | Prioridad | Entrega | Estado |
 |---|---|---|---|---|
