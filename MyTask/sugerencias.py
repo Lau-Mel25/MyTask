@@ -1,12 +1,19 @@
 """Cliente HTTP de Django hacia el microservicio Node.js de sugerencias."""
 
 import json
+import logging
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
 from django.conf import settings
 
-MENSAJE_GENERICO = 'El servicio de sugerencias no está disponible en este momento. Intenta de nuevo más tarde.'
+logger = logging.getLogger(__name__)
+
+# Límites que valida el microservicio (si se superan responde 400).
+MAX_TITULO = 100
+MAX_DESCRIPCION = 1000
+
+MENSAJE_GENERICO ='El servicio de sugerencias no está disponible en este momento. Intenta de nuevo más tarde.'
 
 
 class SugerenciasNoDisponibles(Exception):
@@ -28,7 +35,10 @@ def pedir_sugerencias(tarea):
     peticion = Request(
         url,
         data=json.dumps(
-            {'titulo': tarea.titulo, 'descripcion': tarea.descripcion}
+            {
+                'titulo': tarea.titulo[:MAX_TITULO],
+                'descripcion': tarea.descripcion[:MAX_DESCRIPCION],
+            }
         ).encode('utf-8'),
         headers={
             'Content-Type': 'application/json',
@@ -42,12 +52,15 @@ def pedir_sugerencias(tarea):
     except HTTPError as error:
         # Solo el 502 trae un mensaje apto para el usuario; el resto no se expone.
         mensaje = _mensaje_del_servicio(error) if error.code == 502 else MENSAJE_GENERICO
+        logger.warning('El microservicio respondió HTTP %s a %s', error.code, url)
         raise SugerenciasNoDisponibles(mensaje) from error
     except TimeoutError as error:
+        logger.warning('Tiempo agotado esperando al microservicio en %s', url)
         raise SugerenciasNoDisponibles(
             'El servicio de sugerencias tardó demasiado en responder. Intenta de nuevo.'
         ) from error
     except (URLError, OSError) as error:
+        logger.warning('No se pudo conectar con el microservicio en %s: %s', url, error)
         raise SugerenciasNoDisponibles(
             'No se pudo conectar con el servicio de sugerencias. Intenta de nuevo más tarde.'
         ) from error

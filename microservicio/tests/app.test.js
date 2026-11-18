@@ -112,3 +112,16 @@ describe('crearApp', () => {
     expect(() => crearApp({ generar: generarOk(), internalApiKey: '' })).toThrow();
   });
 });
+
+describe('registro de errores inesperados', () => {
+  test('un error que no es IAError se registra en consola y responde 502', async () => {
+    const consolaError = jest.spyOn(console, 'error').mockImplementation(() => {});
+    const generar = jest.fn(async () => {
+      throw new TypeError('fallo raro');
+    });
+    const res = await post(appCon(generar), { titulo: 'Estudiar' });
+    expect(res.status).toBe(502);
+    expect(consolaError.mock.calls.flat().join(' ')).toContain('fallo raro');
+    consolaError.mockRestore();
+  });
+});

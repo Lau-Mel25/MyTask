@@ -37,7 +37,7 @@ Incluye (estado a la Entrega 3):
 | Base de datos | SQLite (volumen en Docker; disco efímero en el plan gratuito de Render) | Persistencia de usuarios, tareas y registros. PostgreSQL queda como mejora futura. |
 | Contenedores | Docker y Docker Compose | Una imagen por servicio; Compose levanta ambos con un comando. |
 | Documentación de API | Swagger / OpenAPI 3 (`swagger-ui-express`) | Documenta y permite probar los endpoints en `/api-docs`. |
-| Pruebas | Django `TestCase`; Jest y Supertest | 44 pruebas en Django y 32 en el microservicio. |
+| Pruebas | Django `TestCase`; Jest y Supertest | 47 pruebas en Django y 35 en el microservicio. |
 | Control de versiones | GitHub | Repositorio, ramas y seguimiento de cambios. |
 
 ### 1.6 Actores

@@ -66,10 +66,14 @@ async function generarSubtareas(
       body: JSON.stringify({ contents: [{ parts: [{ text: construirPrompt(tarea) }] }] }),
     });
   } catch (e) {
+    console.error('No se pudo conectar con Gemini:', e.message);
     throw new IAError('No se pudo conectar con la IA.');
   }
 
   if (!respuesta.ok) {
+    const detalle =
+      typeof respuesta.text === 'function' ? await respuesta.text().catch(() => '') : '';
+    console.error(`Gemini respondió HTTP ${respuesta.status}:`, detalle.slice(0, 500));
     throw new IAError(
       respuesta.status === 429
         ? 'La IA alcanzó su límite de uso. Intenta de nuevo en un momento.'

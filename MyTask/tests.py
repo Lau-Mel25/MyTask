@@ -519,3 +519,43 @@ class SugerenciasViewsTests(TestCase):
         respuesta = self.client.get(reverse('mytask:detalle', args=[self.tarea_ana.id]))
         self.assertContains(respuesta, 'Sugerir subtareas')
         self.assertContains(respuesta, self.url_sugerir)
+
+
+@override_settings(
+    NODE_SERVICE_URL='http://nodo:3000',
+    INTERNAL_API_KEY='clave-de-prueba',
+    SUGERENCIAS_TIMEOUT=5,
+)
+class ClienteSugerenciasRobustezTests(TestCase):
+    def setUp(self):
+        usuario = User.objects.create_user('ana', password='ClaveSegura123')
+        self.usuario = usuario
+
+    @patch('MyTask.sugerencias.urlopen')
+    def test_recorta_titulo_y_descripcion_a_los_limites_del_servicio(self, urlopen):
+        urlopen.return_value = _respuesta_http({'subtareas': ['a', 'b', 'c']})
+        tarea = Tarea.objects.create(
+            propietario=self.usuario, titulo='t' * 100, descripcion='d' * 1500
+        )
+        pedir_sugerencias(tarea)
+        enviado = json.loads(urlopen.call_args[0][0].data)
+        self.assertEqual(len(enviado['descripcion']), 1000)
+        self.assertEqual(len(enviado['titulo']), 100)
+
+    @patch('MyTask.sugerencias.urlopen')
+    def test_registra_en_el_log_el_fallo_del_servicio(self, urlopen):
+        urlopen.side_effect = _error_http(401, {'error': 'Clave de API ausente o incorrecta.'})
+        tarea = Tarea.objects.create(propietario=self.usuario, titulo='x')
+        with self.assertLogs('MyTask.sugerencias', level='WARNING') as registro:
+            with self.assertRaises(SugerenciasNoDisponibles):
+                pedir_sugerencias(tarea)
+        self.assertIn('401', '\n'.join(registro.output))
+
+    @patch('MyTask.sugerencias.urlopen')
+    def test_registra_en_el_log_cuando_no_hay_conexion(self, urlopen):
+        urlopen.side_effect = URLError('conexion rechazada')
+        tarea = Tarea.objects.create(propietario=self.usuario, titulo='x')
+        with self.assertLogs('MyTask.sugerencias', level='WARNING') as registro:
+            with self.assertRaises(SugerenciasNoDisponibles):
+                pedir_sugerencias(tarea)
+        self.assertIn('conexion rechazada', '\n'.join(registro.output))

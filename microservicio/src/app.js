@@ -68,6 +68,9 @@ function crearApp({ generar, internalApiKey } = {}) {
       const subtareas = await generarTarea(valor);
       return res.json({ tarea: valor.titulo, subtareas });
     } catch (e) {
+      if (!(e instanceof IAError)) {
+        console.error('Error inesperado al generar sugerencias:', e);
+      }
       const mensaje =
         e instanceof IAError ? e.message : 'No se pudieron generar las sugerencias.';
       return res.status(502).json({ error: mensaje });

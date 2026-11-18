@@ -67,12 +67,12 @@ Pruebas automáticas al cierre de la Entrega 2: **26** (`python manage.py test`)
 | HU19 | La IA sugiere subtareas | `microservicio/src/gemini.js` (`generarSubtareas`) · vistas `sugerir_subtareas` y `agregar_sugerencias` · `detalle.html` | `gemini.test.js` (10), `SugerenciasViewsTests` (10) con la IA simulada · prueba real con clave de Gemini pendiente | En curso |
 | HU20 | Aviso claro si la IA falla | `SugerenciasNoDisponibles` · `messages.error` en la vista · Node responde 502 con mensaje en español | `test_sugerir_con_servicio_caido_muestra_aviso_y_la_pagina_carga`, `lanza IAError si Gemini responde 429` | Hecho |
 | HU21 | Docker Compose para levantar todo con un comando | `docker-compose.yml` · `microservicio/Dockerfile` · `.env.example` | YAML validado; `docker compose up` sin probar (Docker no instalado en el equipo de desarrollo) | En curso |
-| HU24 | README profesional y pruebas automáticas básicas | `README.md` · pruebas Django y Jest | 44 pruebas de Django y 32 de Node | Hecho |
+| HU24 | README profesional y pruebas automáticas básicas | `README.md` · pruebas Django y Jest | 47 pruebas de Django y 35 de Node | Hecho |
 | HU28 | Actualizar SRS, UML y matriz, y grabar el Video 3 | `docs/SRS_entrega3_actualizacion.md`, `docs/diagramas_uml.md` y PNG, este documento | Video 3 pendiente | En curso |
 | HU29 | Despliegue final, video final y sustentación | `docs/despliegue.md` (guía) | Entrega final del 26/11 | Pendiente |
 
 ### Cobertura de pruebas de la Entrega 3
 
-- **Django:** `python manage.py test` → **44** pruebas (26 anteriores y 18 nuevas).
-- **Node:** `npm test` en `microservicio/` → **32** pruebas (`gemini` 10, `app` 16, `docs` 6).
+- **Django:** `python manage.py test` → **47** pruebas (26 anteriores y 21 nuevas).
+- **Node:** `npm test` en `microservicio/` → **35** pruebas (`gemini` 12, `app` 17, `docs` 6).
 - Ninguna prueba automática llama a Gemini de verdad; la IA se simula. La prueba real es manual con una clave propia.

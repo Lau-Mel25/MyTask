@@ -80,3 +80,31 @@ describe('generarSubtareas', () => {
     expect(url).toContain('modelo-x');
   });
 });
+
+describe('registro de fallos en consola', () => {
+  let consolaError;
+  beforeEach(() => {
+    consolaError = jest.spyOn(console, 'error').mockImplementation(() => {});
+  });
+  afterEach(() => consolaError.mockRestore());
+
+  test('registra el estado y el cuerpo cuando Gemini responde con error', async () => {
+    const fetchImpl = fetchQueDevuelve({
+      ok: false,
+      status: 404,
+      text: async () => '{"error":{"message":"modelo no encontrado"}}',
+    });
+    await expect(generarSubtareas(tarea, opciones(fetchImpl))).rejects.toBeInstanceOf(IAError);
+    const salida = consolaError.mock.calls.flat().join(' ');
+    expect(salida).toContain('404');
+    expect(salida).toContain('modelo no encontrado');
+  });
+
+  test('registra el motivo cuando falla la red', async () => {
+    const fetchImpl = jest.fn(async () => {
+      throw new Error('ECONNRESET');
+    });
+    await expect(generarSubtareas(tarea, opciones(fetchImpl))).rejects.toBeInstanceOf(IAError);
+    expect(consolaError.mock.calls.flat().join(' ')).toContain('ECONNRESET');
+  });
+});
