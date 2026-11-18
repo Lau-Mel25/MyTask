@@ -168,7 +168,7 @@ Requisitos: Python 3.12 o superior.
 2. Levantar el contenedor:
 
    ```bash
-   docker run -d --name mytask_app -p 8000:8000 mytask
+   docker run -d --name mytask_app -p 8000:8000 -v mytask-data:/data -e DJANGO_DEBUG=False -e DJANGO_SECRET_KEY=cambia-esta-clave -e DJANGO_ALLOWED_HOSTS=localhost,127.0.0.1 -e DJANGO_DB_PATH=/data/db.sqlite3 mytask
    ```
 
 3. Abrir `http://localhost:8000/` en el navegador.
@@ -188,7 +188,7 @@ docker start mytask_app     # volver a iniciarlo
 docker rm mytask_app        # eliminarlo
 ```
 
-> La base de datos SQLite se crea dentro del contenedor al iniciar. Si eliminas el contenedor, también se eliminan los datos. Para conservarlos entre reinicios, agrega un volumen o usa PostgreSQL (previsto para la Entrega 3).
+> La base de datos SQLite vive en el volumen `mytask-data` (carpeta `/data` del contenedor), así que los datos se conservan aunque elimines el contenedor.
 
 ### Pruebas automáticas
 

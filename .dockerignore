@@ -24,3 +24,12 @@ db.sqlite3-journal
 *.log
 PropuestasU/
 README.md
+docs/
+docker-compose.yml
+Dockerfile
+staticfiles/
+.superpowers/
+
+# Microservicio Node (tiene su propia imagen)
+microservicio/
+node_modules/
