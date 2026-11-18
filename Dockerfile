@@ -23,5 +23,6 @@ USER appuser
 
 EXPOSE 8000
 
-# Aplica las migraciones y arranca el servidor
-CMD ["sh", "-c", "python manage.py migrate --noinput && gunicorn mysite.wsgi:application --bind 0.0.0.0:${PORT:-8000}"]
+# Aplica las migraciones, crea el administrador si hay variables DJANGO_SUPERUSER_*
+# (si ya existe, el aviso se ignora) y arranca el servidor
+CMD ["sh", "-c", "python manage.py migrate --noinput && { [ -z \"$DJANGO_SUPERUSER_USERNAME\" ] || python manage.py createsuperuser --noinput || true; } && gunicorn mysite.wsgi:application --bind 0.0.0.0:${PORT:-8000}"]
