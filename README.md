@@ -194,6 +194,8 @@ Requisitos: Python 3.12 o superior.
 - Panel de la app (solo administradores): `http://127.0.0.1:8000/myTask/panel/`
 - Django Admin: `http://127.0.0.1:8000/admin/`
 
+> Copia `.env.example` a `.env` y completa las claves. En local, Django y el microservicio leen ese archivo automáticamente; en Render/Docker las variables se configuran en el entorno.
+
 ### Ejecutarlo con Docker
 
 1. Construir la imagen (el punto final indica la carpeta actual):

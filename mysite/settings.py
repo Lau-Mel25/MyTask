@@ -17,6 +17,23 @@ from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
+def _cargar_env_local():
+    """Carga .env en local sin sobrescribir lo que venga de Render o Docker."""
+    ruta = BASE_DIR / '.env'
+    if not ruta.exists():
+        return
+    for linea in ruta.read_text(encoding='utf-8').splitlines():
+        if not linea or linea.startswith('#') or '=' not in linea:
+            continue
+        clave, valor = linea.split('=', 1)
+        clave, valor = clave.strip(), valor.strip()
+        if clave:
+            os.environ.setdefault(clave, valor)
+
+
+_cargar_env_local()
+
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.1/howto/deployment/checklist/
 
