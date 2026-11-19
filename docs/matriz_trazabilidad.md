@@ -64,9 +64,9 @@ Pruebas automáticas al cierre de la Entrega 2: **26** (`python manage.py test`)
 | HU16 | Microservicio Node.js con API REST | `microservicio/src/app.js`, `server.js` · `POST /api/sugerencias`, `GET /health` · clave `X-API-Key` | `microservicio/tests/app.test.js` (200, 400, 401, 502, emojis, JSON mal formado) · despliegue pendiente de publicar | En curso |
 | HU17 | Swagger público para probar los endpoints | `microservicio/openapi.yaml` · `swagger-ui-express` en `/api-docs` | `microservicio/tests/docs.test.js` · URL pública pendiente | En curso |
 | HU18 | Django consume el microservicio | `MyTask/sugerencias.py` (`pedir_sugerencias`) · `NODE_SERVICE_URL`, `INTERNAL_API_KEY`, `SUGERENCIAS_TIMEOUT` en `settings.py` | `ClienteSugerenciasTests` (8 pruebas: éxito, cabeceras, 502, 401, servicio apagado, tiempo agotado, respuesta inválida) | Hecho |
-| HU19 | La IA sugiere subtareas | `microservicio/src/gemini.js` (`generarSubtareas`) · vistas `sugerir_subtareas` y `agregar_sugerencias` · `detalle.html` | `gemini.test.js` (10), `SugerenciasViewsTests` (10) con la IA simulada · prueba real con clave de Gemini pendiente | En curso |
+| HU19 | La IA sugiere subtareas | `microservicio/src/gemini.js` (`generarSubtareas`) · vistas `sugerir_subtareas` y `agregar_sugerencias` · `detalle.html` | `gemini.test.js` (10), `SugerenciasViewsTests` (10) con la IA simulada · prueba real con Gemini OK (`gemini-3.5-flash-lite`, HTTP 200 y 4 subtareas) | Hecho |
 | HU20 | Aviso claro si la IA falla | `SugerenciasNoDisponibles` · `messages.error` en la vista · Node responde 502 con mensaje en español | `test_sugerir_con_servicio_caido_muestra_aviso_y_la_pagina_carga`, `lanza IAError si Gemini responde 429` | Hecho |
-| HU21 | Docker Compose para levantar todo con un comando | `docker-compose.yml` · `microservicio/Dockerfile` · `.env.example` | YAML validado; `docker compose up` sin probar (Docker no instalado en el equipo de desarrollo) | En curso |
+| HU21 | Docker Compose para levantar todo con un comando | `docker-compose.yml` · `microservicio/Dockerfile` · `.env.example` | `docker compose up --build` probado: `/health`, `/login/` y `/api-docs` respondieron 200 | Hecho |
 | HU24 | README profesional y pruebas automáticas básicas | `README.md` · pruebas Django y Jest | 47 pruebas de Django y 47 de Node | Hecho |
 | HU28 | Actualizar SRS, UML y matriz, y grabar el Video 3 | `docs/SRS_entrega3_actualizacion.md`, `docs/diagramas_uml.md` y PNG, este documento | Video 3 pendiente | En curso |
 | HU29 | Despliegue final, video final y sustentación | `docs/despliegue.md` (guía) | Entrega final del 26/11 | Pendiente |
@@ -75,4 +75,4 @@ Pruebas automáticas al cierre de la Entrega 2: **26** (`python manage.py test`)
 
 - **Django:** `python manage.py test` → **47** pruebas (26 anteriores y 21 nuevas).
 - **Node:** `npm test` en `microservicio/` → **47** pruebas (`gemini` 24, `app` 17, `docs` 6).
-- Ninguna prueba automática llama a Gemini de verdad; la IA se simula. La prueba real es manual con una clave propia.
+- Ninguna prueba automática llama a Gemini de verdad; la IA se simula. La prueba real se hizo manualmente con `gemini-3.5-flash-lite`: HTTP 200 con 4 subtareas y Django consumió el servicio correctamente.

@@ -15,7 +15,7 @@ Ingeniería de Software · Docente: Elfar Didier Morantes Sánchez.
 |---|---|---|---|
 | 1 | 05/11/2026 | SRS, UML inicial, backlog, repositorio y video | Entregada |
 | 2 | 12/11/2026 | CRUD, login, roles, Django Admin, Docker y despliegue inicial | Entregada |
-| 3 | 19/11/2026 | Microservicio Node.js, Swagger, IA, Docker Compose | Implementada (falta publicar y grabar el video) |
+| 3 | 19/11/2026 | Microservicio Node.js, Swagger, IA, Docker Compose | Implementada y probada (falta publicar y grabar el Video 3) |
 | Final | 26/11/2026 | Sustentación | Pendiente |
 
 ### Funcionalidades actuales (app `MyTask`)

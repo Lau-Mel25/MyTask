@@ -77,8 +77,8 @@ Solo cambia el **Estado** de las historias de la Entrega 3 (las anteriores queda
 | HU16 | Como equipo, queremos un microservicio Node.js con API REST. | Alta | 3 | En curso (falta publicar) |
 | HU17 | Como desarrollador, quiero Swagger público para probar los endpoints. | Alta | 3 | En curso (falta URL pública) |
 | HU18 | Como equipo, queremos que Django consuma el microservicio. | Alta | 3 | **Hecho** |
-| HU19 | Como usuario, quiero que la IA me sugiera subtareas. | Alta | 3 | En curso (falta prueba real con Gemini) |
-| HU21 | Como equipo, queremos Docker Compose para levantar todo con un comando. | Alta | 3 | En curso (falta probar con Docker) |
+| HU19 | Como usuario, quiero que la IA me sugiera subtareas. | Alta | 3 | **Hecho** (probado con Gemini real: `gemini-3.5-flash-lite`, HTTP 200 y 4 subtareas) |
+| HU21 | Como equipo, queremos Docker Compose para levantar todo con un comando. | Alta | 3 | **Hecho** (`docker compose up --build` probado: `/health`, `/login/` y `/api-docs` → 200) |
 | HU20 | Como usuario, quiero un aviso claro si la IA falla. | Alta | 3 | **Hecho** |
 | HU28 | Como equipo, queremos actualizar el SRS, el UML y la matriz, y grabar el Video 3. | Alta | 3 | En curso (falta el video) |
 | HU24 | Como equipo, queremos README profesional y pruebas automáticas básicas. | Alta | 3 | **Hecho** |
@@ -108,7 +108,7 @@ Solo cambia el **Estado** de las historias de la Entrega 3 (las anteriores queda
 
 - La clave de Gemini (`GEMINI_API_KEY`) existe solo en el microservicio; Django solo conoce la clave interna `INTERNAL_API_KEY`, que protege el endpoint público y evita que terceros consuman la cuota de Gemini.
 - Django llama con un tiempo límite de 60 s (`SUGERENCIAS_TIMEOUT`) y, si el servicio falla, muestra un aviso sin romper la página (HU20).
-- El microservicio reintenta hasta 3 veces (esperas de 1 s y 2 s) cuando Gemini responde 500, 502, 503 o 504, o no contesta en 15 s; los errores permanentes (clave, modelo, límite de uso) no se reintentan.
+- El microservicio reintenta hasta 3 veces (esperas de 1 s y 2 s) cuando Gemini responde 500, 502, 503 o 504, o no contesta en 8 s; los errores permanentes (clave, modelo, límite de uso) no se reintentan. El modelo por defecto es `gemini-3.5-flash-lite` (configurable con `GEMINI_MODEL`).
 - Las sugerencias no se guardan; el usuario marca las que quiere y se crean como `Tarea` (máximo 6, título de hasta 100 caracteres).
 
 ## 5. Docker, Compose y despliegue **[CAMBIA]**
@@ -122,7 +122,7 @@ Solo cambia el **Estado** de las historias de la Entrega 3 (las anteriores queda
 
 - En el plan gratuito de Render los servicios se duermen tras unos 15 minutos y el primer acceso es lento.
 - Sin disco persistente, la base SQLite se reinicia en cada despliegue (mejora futura: PostgreSQL).
-- Las pruebas automáticas simulan a Gemini; la integración real se verifica manualmente.
+- Las pruebas automáticas simulan a Gemini; la integración real se verificó manualmente con `gemini-3.5-flash-lite`: `POST /api/sugerencias` respondió HTTP 200 con 4 subtareas, y Django consumió el servicio correctamente.
 
 ## 6. Matriz de trazabilidad **[CAMBIA]**
 
