@@ -4,15 +4,26 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.db.models import Count, Q
 from django.shortcuts import get_object_or_404, redirect, render
+from django.views.decorators.http import require_POST
 
 from .decorators import solo_administradores
 from .forms import RegistroForm
 from .models import Perfil, Tarea
+from .sugerencias import SugerenciasNoDisponibles, pedir_sugerencias
 
 
 def _tarea_del_usuario(request, tarea_id):
     """Devuelve la tarea solo si pertenece al usuario autenticado."""
     return get_object_or_404(Tarea, pk=tarea_id, propietario=request.user)
+
+
+MAX_SUGERENCIAS_AGREGADAS = 6
+LARGO_TITULO = 100
+
+
+def _contexto_detalle(tarea, **extra):
+    """Contexto de la página de detalle de una tarea."""
+    return {'tarea': tarea, 'registros': tarea.registros.order_by('-fecha'), **extra}
 
 
 @login_required
@@ -33,12 +44,7 @@ def index(request):
 @login_required
 def detalle(request, tarea_id):
     tarea = _tarea_del_usuario(request, tarea_id)
-    registros = tarea.registros.order_by('-fecha')
-    contexto = {
-        'tarea': tarea,
-        'registros': registros,
-    }
-    return render(request, 'MyTask/detalle.html', contexto)
+    return render(request, 'MyTask/detalle.html', _contexto_detalle(tarea))
 
 
 @login_required
@@ -200,3 +206,37 @@ def usuarios(request):
         'roles': Perfil.Rol.choices,
     }
     return render(request, 'MyTask/usuarios.html', contexto)
+
+
+@login_required
+@require_POST
+def sugerir_subtareas(request, tarea_id):
+    """Pide a la IA subtareas para la tarea y las muestra en el detalle."""
+    tarea = _tarea_del_usuario(request, tarea_id)
+    try:
+        sugerencias = pedir_sugerencias(tarea)
+    except SugerenciasNoDisponibles as error:
+        messages.error(request, str(error))
+        sugerencias = []
+    return render(request, 'MyTask/detalle.html', _contexto_detalle(tarea, sugerencias=sugerencias))
+
+
+@login_required
+@require_POST
+def agregar_sugerencias(request, tarea_id):
+    """Crea una tarea propia por cada sugerencia marcada."""
+    tarea = _tarea_del_usuario(request, tarea_id)
+    titulos = [t.strip()[:LARGO_TITULO] for t in request.POST.getlist('sugerencia')]
+    titulos = [t for t in titulos if t][:MAX_SUGERENCIAS_AGREGADAS]
+    if not titulos:
+        messages.error(request, 'No seleccionaste ninguna sugerencia.')
+        return redirect('mytask:detalle', tarea_id=tarea.id)
+    Tarea.objects.bulk_create(
+        [Tarea(propietario=request.user, titulo=titulo) for titulo in titulos]
+    )
+    cantidad = len(titulos)
+    messages.success(
+        request,
+        'Se agregó 1 tarea.' if cantidad == 1 else f'Se agregaron {cantidad} tareas.',
+    )
+    return redirect('mytask:index')

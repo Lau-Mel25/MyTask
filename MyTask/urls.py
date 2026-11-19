@@ -11,6 +11,12 @@ urlpatterns = [
     path('tarea/<int:tarea_id>/eliminar/', views.eliminar_tarea, name='eliminar_tarea'),
     path('tarea/<int:tarea_id>/registro/', views.agregar_registro, name='agregar_registro'),
     path('tarea/<int:tarea_id>/completar/', views.completar_tarea, name='completar_tarea'),
+    path('tarea/<int:tarea_id>/sugerencias/', views.sugerir_subtareas, name='sugerir_subtareas'),
+    path(
+        'tarea/<int:tarea_id>/sugerencias/agregar/',
+        views.agregar_sugerencias,
+        name='agregar_sugerencias',
+    ),
     path('panel/', views.panel, name='panel'),
     path('usuarios/', views.usuarios, name='usuarios'),
 ]

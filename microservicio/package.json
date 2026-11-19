@@ -1,0 +1,23 @@
+{
+  "name": "mytask-sugerencias",
+  "version": "1.0.0",
+  "description": "Microservicio que sugiere subtareas con IA generativa (Gemini) para MyTask",
+  "main": "src/server.js",
+  "private": true,
+  "scripts": {
+    "start": "node src/server.js",
+    "test": "jest"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "express": "^4.21.2",
+    "swagger-ui-express": "^5.0.1",
+    "yaml": "^2.7.0"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "supertest": "^7.0.0"
+  }
+}

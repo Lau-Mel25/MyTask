@@ -43,6 +43,35 @@
 </article>
 
 <section class="tarjeta">
+    <h2>Subtareas sugeridas por IA</h2>
+    <p class="meta">Divide esta tarea en pasos concretos y agrégalos como tareas tuyas.</p>
+
+    {% if sugerencias %}
+        <form action="{% url 'mytask:agregar_sugerencias' tarea.id %}" method="post">
+            {% csrf_token %}
+            <ul class="lista-sugerencias" style="list-style: none; padding: 0; margin: 14px 0;">
+                {% for sugerencia in sugerencias %}
+                    <li style="margin-bottom: 8px;">
+                        <label>
+                            <input type="checkbox" name="sugerencia" value="{{ sugerencia }}" checked>
+                            {{ sugerencia }}
+                        </label>
+                    </li>
+                {% endfor %}
+            </ul>
+            <button class="boton" type="submit">Agregar como tareas</button>
+        </form>
+    {% endif %}
+
+    <form action="{% url 'mytask:sugerir_subtareas' tarea.id %}" method="post" style="margin-top: 14px;">
+        {% csrf_token %}
+        <button class="boton boton-secundario" type="submit">
+            🤖 {% if sugerencias %}Pedir otras sugerencias{% else %}Sugerir subtareas{% endif %}
+        </button>
+    </form>
+</section>
+
+<section class="tarjeta">
     <h2>Bitácora de avances</h2>
     <p class="meta">Registra lo que hiciste para retomar la tarea más adelante.</p>
 

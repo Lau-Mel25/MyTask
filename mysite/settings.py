@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.1/ref/settings/
 """
 
+import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -20,12 +21,24 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/6.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-uvptx-$h@xf4na=rmlar)e^+^mh8evlo#zg&vsh2de#2l*31!9'
+SECRET_KEY = os.environ.get(
+    'DJANGO_SECRET_KEY',
+    'django-insecure-uvptx-$h@xf4na=rmlar)e^+^mh8evlo#zg&vsh2de#2l*31!9',
+)
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+# En local queda en True; en Docker se controla con DJANGO_DEBUG=False.
+DEBUG = os.environ.get('DJANGO_DEBUG', 'True').lower() == 'true'
 
-ALLOWED_HOSTS = []
+# Lista separada por comas, ej: "localhost,127.0.0.1,midominio.com"
+ALLOWED_HOSTS = [
+    h.strip() for h in os.environ.get('DJANGO_ALLOWED_HOSTS', '').split(',') if h.strip()
+]
+
+# Orígenes confiables para CSRF al desplegar tras HTTPS, ej: "https://midominio.com"
+CSRF_TRUSTED_ORIGINS = [
+    o.strip() for o in os.environ.get('DJANGO_CSRF_TRUSTED_ORIGINS', '').split(',') if o.strip()
+]
 
 
 # Application definition
@@ -42,6 +55,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -76,7 +90,8 @@ WSGI_APPLICATION = 'mysite.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        # En Docker se apunta a /data/db.sqlite3 (volumen) con DJANGO_DB_PATH
+        'NAME': os.environ.get('DJANGO_DB_PATH', BASE_DIR / 'db.sqlite3'),
     }
 }
 
@@ -104,6 +119,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.1/howto/static-files/
 
 STATIC_URL = 'static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 
 # Autenticación
@@ -112,6 +128,14 @@ STATIC_URL = 'static/'
 LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'mytask:index'
 LOGOUT_REDIRECT_URL = 'login'
+
+
+# Microservicio de sugerencias con IA (Node.js)
+# En Docker Compose: http://sugerencias:3000. En el despliegue: la URL pública de Node.
+
+NODE_SERVICE_URL = os.environ.get('NODE_SERVICE_URL', 'http://localhost:3000')
+INTERNAL_API_KEY = os.environ.get('INTERNAL_API_KEY', '')
+SUGERENCIAS_TIMEOUT = int(os.environ.get('SUGERENCIAS_TIMEOUT', '60'))
 
 
 # Email

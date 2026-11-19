@@ -1,0 +1,37 @@
+# Levanta toda la aplicación con un solo comando:
+#   docker compose up --build
+# Antes, copia .env.example a .env y completa GEMINI_API_KEY.
+
+services:
+  # Microservicio Node.js que habla con la IA (Gemini)
+  sugerencias:
+    build: ./microservicio
+    ports:
+      - "3000:3000"
+    environment:
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
+      GEMINI_MODEL: ${GEMINI_MODEL:-}
+      INTERNAL_API_KEY: ${INTERNAL_API_KEY}
+
+  # Aplicación web Django
+  web:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY}
+      DJANGO_DEBUG: ${DJANGO_DEBUG:-False}
+      DJANGO_ALLOWED_HOSTS: ${DJANGO_ALLOWED_HOSTS:-localhost,127.0.0.1}
+      DJANGO_DB_PATH: /data/db.sqlite3
+      DJANGO_SUPERUSER_USERNAME: ${DJANGO_SUPERUSER_USERNAME:-}
+      DJANGO_SUPERUSER_PASSWORD: ${DJANGO_SUPERUSER_PASSWORD:-}
+      DJANGO_SUPERUSER_EMAIL: ${DJANGO_SUPERUSER_EMAIL:-}
+      NODE_SERVICE_URL: http://sugerencias:3000
+      INTERNAL_API_KEY: ${INTERNAL_API_KEY}
+    volumes:
+      - datos:/data
+    depends_on:
+      - sugerencias
+
+volumes:
+  datos:
