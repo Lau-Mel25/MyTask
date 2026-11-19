@@ -13,7 +13,14 @@ function fetchQueDevuelve(respuesta) {
   return fn;
 }
 
-const opciones = (fetchImpl) => ({ apiKey: 'clave-de-prueba', model: 'modelo-x', fetchImpl });
+const sinEspera = async () => {};
+const opciones = (fetchImpl, extra = {}) => ({
+  apiKey: 'clave-de-prueba',
+  model: 'modelo-x',
+  fetchImpl,
+  esperar: sinEspera,
+  ...extra,
+});
 const tarea = { titulo: 'Preparar el informe', descripcion: 'Entrega del viernes' };
 
 describe('generarSubtareas', () => {
@@ -106,5 +113,95 @@ describe('registro de fallos en consola', () => {
     });
     await expect(generarSubtareas(tarea, opciones(fetchImpl))).rejects.toBeInstanceOf(IAError);
     expect(consolaError.mock.calls.flat().join(' ')).toContain('ECONNRESET');
+  });
+});
+
+describe('reintentos ante fallos temporales de Gemini', () => {
+  let consolaError;
+  beforeEach(() => {
+    consolaError = jest.spyOn(console, 'error').mockImplementation(() => {});
+  });
+  afterEach(() => consolaError.mockRestore());
+
+  const error503 = { ok: false, status: 503, text: async () => 'alta demanda' };
+  const exito = () => respuestaGemini('{"subtareas":["a","b","c"]}');
+
+  test('reintenta tras un 503 y devuelve las subtareas del segundo intento', async () => {
+    const fetchImpl = jest.fn().mockResolvedValueOnce(error503).mockResolvedValueOnce(exito());
+    await expect(generarSubtareas(tarea, opciones(fetchImpl))).resolves.toEqual(['a', 'b', 'c']);
+    expect(fetchImpl).toHaveBeenCalledTimes(2);
+  });
+
+  test('se rinde con IAError despues de 3 intentos seguidos con 503', async () => {
+    const fetchImpl = jest.fn().mockResolvedValue(error503);
+    await expect(generarSubtareas(tarea, opciones(fetchImpl))).rejects.toBeInstanceOf(IAError);
+    expect(fetchImpl).toHaveBeenCalledTimes(3);
+  });
+
+  test('espera 1 s y luego 2 s entre intentos', async () => {
+    const esperar = jest.fn(async () => {});
+    const fetchImpl = jest.fn().mockResolvedValue(error503);
+    await expect(
+      generarSubtareas(tarea, opciones(fetchImpl, { esperar })),
+    ).rejects.toBeInstanceOf(IAError);
+    expect(esperar.mock.calls.map(([ms]) => ms)).toEqual([1000, 2000]);
+  });
+
+  test('reintenta tras un fallo de red', async () => {
+    const fetchImpl = jest
+      .fn()
+      .mockRejectedValueOnce(new Error('ECONNRESET'))
+      .mockResolvedValueOnce(exito());
+    await expect(generarSubtareas(tarea, opciones(fetchImpl))).resolves.toEqual(['a', 'b', 'c']);
+    expect(fetchImpl).toHaveBeenCalledTimes(2);
+  });
+
+  test.each([400, 401, 403, 404, 429])('no reintenta con el estado %i', async (status) => {
+    const fetchImpl = jest.fn().mockResolvedValue({ ok: false, status, text: async () => '' });
+    await expect(generarSubtareas(tarea, opciones(fetchImpl))).rejects.toBeInstanceOf(IAError);
+    expect(fetchImpl).toHaveBeenCalledTimes(1);
+  });
+
+  test('no reintenta si Gemini responde bien pero con formato inutilizable', async () => {
+    const fetchImpl = jest.fn().mockResolvedValue(respuestaGemini('esto no es json'));
+    await expect(generarSubtareas(tarea, opciones(fetchImpl))).rejects.toBeInstanceOf(IAError);
+    expect(fetchImpl).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('tiempo limite por intento', () => {
+  let consolaError;
+  beforeEach(() => {
+    consolaError = jest.spyOn(console, 'error').mockImplementation(() => {});
+  });
+  afterEach(() => consolaError.mockRestore());
+
+  // fetch que nunca responde: solo termina si se aborta la señal que recibe.
+  // Si el código no le pasa ninguna señal, se queda colgado para siempre (la prueba falla).
+  const colgarHastaAbortar = (_url, init) =>
+    new Promise((_resolver, rechazar) => {
+      if (init.signal) {
+        init.signal.addEventListener('abort', () => rechazar(new Error('abortado por tiempo')));
+      }
+    });
+
+  test('si Gemini no responde a tiempo, falla con IAError en vez de quedarse esperando', async () => {
+    const fetchImpl = jest.fn(colgarHastaAbortar);
+    await expect(
+      generarSubtareas(tarea, opciones(fetchImpl, { timeoutMs: 20, intentos: 1 })),
+    ).rejects.toBeInstanceOf(IAError);
+    expect(fetchImpl).toHaveBeenCalledTimes(1);
+  });
+
+  test('un intento colgado se reintenta y el siguiente puede tener exito', async () => {
+    const exito = respuestaGemini('{"subtareas":["a","b","c"]}');
+    const fetchImpl = jest
+      .fn()
+      .mockImplementationOnce(colgarHastaAbortar)
+      .mockResolvedValueOnce(exito);
+    await expect(
+      generarSubtareas(tarea, opciones(fetchImpl, { timeoutMs: 20 })),
+    ).resolves.toEqual(['a', 'b', 'c']);
+    expect(fetchImpl).toHaveBeenCalledTimes(2);
   });
 });

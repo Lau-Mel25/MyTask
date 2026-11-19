@@ -39,7 +39,7 @@ Incluye (estado a la Entrega 3):
 | Base de datos | SQLite (volumen en Docker; disco efímero en el plan gratuito de Render) | Persistencia de usuarios, tareas y registros. PostgreSQL queda como mejora futura. |
 | Contenedores | Docker y Docker Compose | Una imagen por servicio; Compose levanta ambos con un comando. |
 | Documentación de API | Swagger / OpenAPI 3 (`swagger-ui-express`) | Documenta y permite probar los endpoints en `/api-docs`. |
-| Pruebas | Django `TestCase`; Jest y Supertest | 47 pruebas en Django y 35 en el microservicio. |
+| Pruebas | Django `TestCase`; Jest y Supertest | 47 pruebas en Django y 47 en el microservicio. |
 | Control de versiones | GitHub | Repositorio, ramas y seguimiento de cambios. |
 
 ### 1.6 Actores
@@ -107,7 +107,8 @@ Solo cambia el **Estado** de las historias de la Entrega 3 (las anteriores queda
 **Decisiones de diseño**
 
 - La clave de Gemini (`GEMINI_API_KEY`) existe solo en el microservicio; Django solo conoce la clave interna `INTERNAL_API_KEY`, que protege el endpoint público y evita que terceros consuman la cuota de Gemini.
-- Django llama con un tiempo límite de 30 s (`SUGERENCIAS_TIMEOUT`) y, si el servicio falla, muestra un aviso sin romper la página (HU20).
+- Django llama con un tiempo límite de 60 s (`SUGERENCIAS_TIMEOUT`) y, si el servicio falla, muestra un aviso sin romper la página (HU20).
+- El microservicio reintenta hasta 3 veces (esperas de 1 s y 2 s) cuando Gemini responde 500, 502, 503 o 504, o no contesta en 15 s; los errores permanentes (clave, modelo, límite de uso) no se reintentan.
 - Las sugerencias no se guardan; el usuario marca las que quiere y se crean como `Tarea` (máximo 6, título de hasta 100 caracteres).
 
 ## 5. Docker, Compose y despliegue **[CAMBIA]**

@@ -135,7 +135,7 @@ LOGOUT_REDIRECT_URL = 'login'
 
 NODE_SERVICE_URL = os.environ.get('NODE_SERVICE_URL', 'http://localhost:3000')
 INTERNAL_API_KEY = os.environ.get('INTERNAL_API_KEY', '')
-SUGERENCIAS_TIMEOUT = int(os.environ.get('SUGERENCIAS_TIMEOUT', '30'))
+SUGERENCIAS_TIMEOUT = int(os.environ.get('SUGERENCIAS_TIMEOUT', '60'))
 
 
 # Email
