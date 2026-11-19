@@ -1,4 +1,4 @@
-const MODELO_POR_DEFECTO = 'gemini-3.8-flash';
+const MODELO_POR_DEFECTO = 'gemini-3.5-flash-lite';
 const MAX_SUBTAREAS = 6;
 const MIN_SUBTAREAS = 3;
 const MAX_LARGO = 100;

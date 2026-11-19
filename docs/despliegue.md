@@ -76,7 +76,7 @@ Entra a <https://render.com>, pulsa **Get Started** e inicia sesión **con GitHu
    | Variable | Valor |
    |---|---|
    | `GEMINI_API_KEY` | tu clave de Gemini |
-   | `GEMINI_MODEL` | `gemini-3.8-flash` |
+   | `GEMINI_MODEL` | `gemini-3.5-flash-lite` |
    | `INTERNAL_API_KEY` | tu clave inventada (anótala, la usarás otra vez) |
 
 4. Pulsa **Create Web Service** y espera a que el estado diga **Live** (unos minutos).
