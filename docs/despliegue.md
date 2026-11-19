@@ -76,6 +76,7 @@ Entra a <https://render.com>, pulsa **Get Started** e inicia sesión **con GitHu
    | Variable | Valor |
    |---|---|
    | `GEMINI_API_KEY` | tu clave de Gemini |
+   | `GEMINI_MODEL` | `gemini-3.8-flash` |
    | `INTERNAL_API_KEY` | tu clave inventada (anótala, la usarás otra vez) |
 
 4. Pulsa **Create Web Service** y espera a que el estado diga **Live** (unos minutos).
@@ -117,7 +118,7 @@ Entra a <https://render.com>, pulsa **Get Started** e inicia sesión **con GitHu
 
 1. Abre la URL de Django, regístrate, crea una tarea y entra a su detalle.
 2. Pulsa **Sugerir subtareas**, marca las que quieras y pulsa **Agregar como tareas**.
-3. Abre el Swagger, pulsa **Authorize**, pega tu `INTERNAL_API_KEY`, y prueba `POST /api/sugerencias` con **Try it out**.
+3. Abre el Swagger, entra a `POST /api/sugerencias`, pulsa **Try it out** y pega tu `INTERNAL_API_KEY` en el campo **X-API-Key** (también puedes usar **Authorize**). Luego pulsa **Execute**.
 4. Entra a `/admin/` con el usuario `admin` para mostrar el rol de administrador.
 
 ---

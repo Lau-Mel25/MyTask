@@ -6,8 +6,10 @@ info:
     Microservicio de MyTask que sugiere subtareas con IA generativa (Gemini).
 
     **Cómo probarlo desde esta página**
-    1. Pulsa **Authorize** e ingresa la clave de API (`X-API-Key`) que te entregó el equipo.
-    2. Abre `POST /api/sugerencias`, pulsa **Try it out** y luego **Execute**.
+    1. Abre `POST /api/sugerencias` y pulsa **Try it out**.
+    2. En el campo **X-API-Key** pega el valor de `INTERNAL_API_KEY` (sin comillas).
+       También puedes usar el botón **Authorize** con el esquema `ApiKeyAuth`.
+    3. Escribe el título y pulsa **Execute**.
 
     `GET /health` no necesita clave.
 servers:
@@ -42,6 +44,13 @@ paths:
       description: Envía el título (y opcionalmente la descripción) de una tarea y devuelve entre 3 y 6 subtareas cortas generadas por IA.
       security:
         - ApiKeyAuth: []
+      parameters:
+        - name: X-API-Key
+          in: header
+          required: false
+          description: Pega aquí el valor de INTERNAL_API_KEY. Si ya usaste el botón Authorize, puedes dejarlo vacío.
+          schema:
+            type: string
       requestBody:
         required: true
         content:
@@ -74,7 +83,7 @@ paths:
               example:
                 error: El título es obligatorio.
         '401':
-          description: Falta la cabecera `X-API-Key` o es incorrecta.
+          description: Falta la cabecera `X-API-Key` (campo visible en Try it out o botón Authorize) o es incorrecta.
           content:
             application/json:
               schema:

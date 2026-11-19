@@ -1,12 +1,13 @@
-const MODELO_POR_DEFECTO = 'gemini-3.6-flash';
+const MODELO_POR_DEFECTO = 'gemini-3.8-flash';
 const MAX_SUBTAREAS = 6;
 const MIN_SUBTAREAS = 3;
 const MAX_LARGO = 100;
 const MAX_INTENTOS = 3;
 const ESPERA_BASE_MS = 1000;
-// Cada intento espera a Gemini como máximo 15 s: 3 intentos + esperas ≈ 48 s,
-// por debajo del tiempo límite de Django (SUGERENCIAS_TIMEOUT = 60 s).
-const TIMEOUT_INTENTO_MS = 15000;
+// Cada intento espera a Gemini como máximo 8 s: 3 intentos + esperas (1 s y 2 s) ≈ 27 s.
+// Así la respuesta llega antes de que parezca colgada y sigue por debajo del
+// tiempo límite de Django (SUGERENCIAS_TIMEOUT = 60 s).
+const TIMEOUT_INTENTO_MS = 8000;
 const ESTADOS_REINTENTABLES = new Set([500, 502, 503, 504]);
 
 class IAError extends Error {
